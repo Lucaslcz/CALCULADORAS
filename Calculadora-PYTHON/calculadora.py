@@ -1,46 +1,46 @@
 import tkinter as tk
 
 def criar_interface():
-    global expressao_atual
-    expressao_atual = ""
-
     def limpar_display():
-        global expressao_atual
-        expressao_atual = ""
-        texto_display.set("")
+        campo_display.delete(0, tk.END)
+        campo_display.focus()
 
     def deletar_ultimo():
-        global expressao_atual
-        expressao_atual = expressao_atual[:-1]
-        texto_display.set(expressao_atual)
+        pos = campo_display.index(tk.INSERT)
+        if pos > 0:
+            campo_display.delete(pos - 1, pos)
+        campo_display.focus()
 
     def adicionar_caractere(caractere):
-        global expressao_atual
-        if caractere == '%':
-            expressao_atual += '/100'
-        else:
-            expressao_atual += str(caractere)
-        texto_display.set(expressao_atual)
+        pos = campo_display.index(tk.INSERT)
+        campo_display.insert(pos, str(caractere))
+        campo_display.focus()
+
+    def adicionar_parenteses():
+        pos = campo_display.index(tk.INSERT)
+        campo_display.insert(pos, "()")
+        campo_display.icursor(pos + 1)
+        campo_display.focus()
 
     def calcular():
-        global expressao_atual
         try:
-            exp = expressao_atual.replace(',', '.')
+            exp = campo_display.get().replace(',', '.')
             resultado = str(eval(exp))
             if resultado.endswith('.0'):
                 resultado = resultado[:-2]
-            texto_display.set(resultado.replace('.', ','))
-            expressao_atual = resultado
+            
+            campo_display.delete(0, tk.END)
+            campo_display.insert(0, resultado.replace('.', ','))
         except:
-            texto_display.set("Erro")
-            expressao_atual = ""
+            campo_display.delete(0, tk.END)
+            campo_display.insert(0, "Erro")
+        campo_display.focus()
 
-    # --- Cores ---
-    COR_FUNDO = "#000000"        
-    COR_BOTAO_PADRAO = "#1A1A1A" 
-    COR_VERDE_NEON = "#00FF7F"   
-    COR_TEXTO_NUM = "#FFFFFF"    
-    COR_C = "#FF3030"            
+    COR_FUNDO = "#000000"
+    COR_BOTAO_PADRAO = "#1A1A1A"
+    COR_VERDE_NEON = "#00FF7F"
+    COR_TEXTO_NUM = "#FFFFFF"
+    COR_C = "#FF3030"
 
     janela = tk.Tk()
     janela.title("Calculadora Pro Green")
@@ -48,21 +48,19 @@ def criar_interface():
     janela.configure(bg=COR_FUNDO)
     janela.resizable(False, False)
 
-    texto_display = tk.StringVar()
-
-    # --- Visor ---
     campo_display = tk.Entry(
-        janela, textvariable=texto_display, font=('Helvetica', 48),
+        janela, font=('Helvetica', 42),
         bg=COR_FUNDO, fg=COR_TEXTO_NUM, bd=0, justify='right',
-        state='readonly', readonlybackground=COR_FUNDO
+        insertbackground=COR_VERDE_NEON
     )
     campo_display.pack(pady=(60, 30), padx=25, fill='x')
+    campo_display.focus()
 
     frame_corpo = tk.Frame(janela, bg=COR_FUNDO)
     frame_corpo.pack(expand=True, fill='both', padx=15, pady=(0, 20))
     
     botoes_layout = [
-        ('C', 0, 0, 1), ('«', 0, 1, 1), ('%', 0, 2, 1), ('/', 0, 3, 1),
+        ('C', 0, 0, 1), ('«', 0, 1, 1), ('()', 0, 2, 1), ('/', 0, 3, 1),
         ('7', 1, 0, 1), ('8', 1, 1, 1), ('9', 1, 2, 1), ('*', 1, 3, 1),
         ('4', 2, 0, 1), ('5', 2, 1, 1), ('6', 2, 2, 1), ('-', 2, 3, 1),
         ('1', 3, 0, 1), ('2', 3, 1, 1), ('3', 3, 2, 1), ('+', 3, 3, 1),
@@ -72,6 +70,7 @@ def criar_interface():
     def criar_comando(valor):
         if valor == 'C': return limpar_display
         if valor == '«': return deletar_ultimo
+        if valor == '()': return adicionar_parenteses
         if valor == '=': return calcular
         return lambda: adicionar_caractere(valor)
 
@@ -83,7 +82,7 @@ def criar_interface():
             bg_color = COR_BOTAO_PADRAO
             if texto == 'C':
                 fg_color = COR_C
-            elif texto in ['/', '*', '-', '+', '%', '«']:
+            elif texto in ['/', '*', '-', '+', '()', '«']:
                 fg_color = COR_VERDE_NEON
             else:
                 fg_color = COR_TEXTO_NUM
